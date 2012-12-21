@@ -4,47 +4,50 @@ using namespace cv;
 
 int main()
 {
-	Mat src, hsv;
-	src = imread("test.jpg", 1);
-	cvtColor(src, hsv, CV_BGR2HSV);
-	
-	/* Calculate the Histogram */
-	int hbins = 30; // Quantize hue to 30 levels
-	int sbins = 32; // Quantize the saturation to 32 levels
-	int histSize[] = {hbins, sbins};
-	float hranges[] = {0, 180}; // hue varies from 0 to 179
-	float sranges[] = {0, 256}; // saturation varies from 0 to 255
-	const float* ranges[] = {hranges, sranges};
+	int i;
 	MatND hist;
-	int channels[] = {0, 1};
-	calcHist(	&hsv, 1, channels,
-				Mat(), // do not use mask
-				hist, 2, histSize, ranges,
-				true, // the histogram is uniform
-				false	);
+	Mat image = imread("test.jpg", 0); // open in b&w
 	
-	/* Show the Histogram */
-	double maxVal=0;
-	minMaxLoc(hist, 0, &maxVal, 0, 0);
-	int scale = 10;
-	Mat histImg = Mat::zeros(sbins*scale, hbins*10, CV_8UC3);
-	for( int h = 0; h < hbins; h++ )
+	/* Calculate the histogram */
+#define DIM  1
+	int channels = 0; // by default, we look at channel 0
+	int hist_size[DIM] = { 256 };
+	
+	float hist_ranges[2*DIM];
+	for(i=0; i<DIM; i++)
 	{
-		for( int s = 0; s < sbins; s++ )
-		{
-			float binVal = hist.at<float>(h, s);
-			int intensity = cvRound(binVal*255/maxVal);
-			rectangle( histImg, Point(h*scale, s*scale),
-						Point( (h+1)*scale - 1, (s+1)*scale - 1),
-						Scalar::all(intensity),
-						CV_FILLED );
-		}
+		hist_ranges[i] = 0.0;
+		hist_ranges[i+1] = 255.0;
 	}
+	const float *ranges[1] = { hist_ranges };
+	calcHist(&image, 
+			1,         // histogram from 1 image only
+			&channels, // the channel used
+			cv::Mat(), // no mask is used
+			hist,      // the resulting histogram
+			DIM,       // it is a 1D histgram (1 bin)
+			hist_size, // number of bins
+			ranges,    // pixel value range
+			true,      // the histogram is uniform
+			false	);
 	
-	namedWindow( "Source", 1 );
-	imshow( "Source", src );
-	namedWindow( "H-S Histogram", 1 );
-	imshow( "H-S Histogram", histImg );
+	/* Draw and display the histogram */
+	double maxVal = 0;
+	double minVal = 0;
+	minMaxLoc(hist, &minVal, &maxVal, 0, 0);
+	//image on which to display histogram
+	Mat histImage(hist_size[0], hist_size[0], CV_8U, cv::Scalar(255));
+	int hpt = static_cast<int>(0.9*hist_size[0]); // highest point is 90% of nbins
+	for(int h=0; h<hist_size[0]; h++)
+	{
+		float binVal = hist.at<float>(h);
+		int intensity = static_cast<int>(binVal*hpt/maxVal);
+		line(histImage, Point(h, hist_size[0]),
+						Point(h, hist_size[0]-intensity),
+						Scalar::all(0));
+	}
+	namedWindow("Histogram", 0);
+	imshow("Histogram", histImage);
 	waitKey();
 	return 0;
 }
