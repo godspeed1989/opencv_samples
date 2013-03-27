@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 using namespace std;
@@ -19,17 +20,28 @@ int main()
 	VideoCapture cap(0); // open the default camera
 	namedWindow("face", 1);
 	double scale = 1.5;
-	if(0)
+	if(!cap.isOpened())
 	{
 		image = imread( "faceScene.jpg", 1 );
 		detect_face(image, cascade, nestedCascade, scale);
 	}
 	else
 	{
+		char strfps[64] = "0 fps";
+		clock_t start = clock();
+		unsigned int fps = 0;
 		for(;;)
 		{
 			cap >> image;
 			detect_face(image, cascade, nestedCascade, scale);
+			fps++;
+			if(clock() - start > CLOCKS_PER_SEC)
+			{
+				sprintf(strfps, "%d fps", fps);
+				fps = 0;
+				start = clock();
+			}
+			putText(image, strfps, cv::Point(0,20), 3, 1, CV_RGB(25,200,25));
 			imshow("face", image);
 			if(cv::waitKey(30) >= 0) break;
 		}
