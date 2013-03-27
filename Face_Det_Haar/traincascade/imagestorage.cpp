@@ -57,6 +57,7 @@ bool CvCascadeImageReader::NegReader::nextImg()
     size_t count = imgFilenames.size();
     for( size_t i = 0; i < count; i++ )
     {
+        //std::cout<< imgFilenames[last] << std::endl;
         src = imread( imgFilenames[last++], 0 );
         if( src.empty() )
             continue;
@@ -91,7 +92,10 @@ bool CvCascadeImageReader::NegReader::get( Mat& _img )
 
     if( img.empty() )
         if ( !nextImg() )
+        {
+            std::cout << "neg reader get() error\n";
             return false;
+        }
 
     Mat mat( winSize.height, winSize.width, CV_8UC1,
         (void*)(img.data + point.y * img.step + point.x * img.elemSize()), img.step );

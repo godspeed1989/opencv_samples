@@ -10,15 +10,30 @@ void detect_face( Mat& img,
 
 int main()
 {
+	Mat image;
 	CascadeClassifier cascade;
 	cascade.load("haarcascade_frontalface_alt.xml");
 	CascadeClassifier nestedCascade;
 	nestedCascade.load("haarcascade_eye_tree_eyeglasses.xml");
-
-	double scale = 1.5;
-	Mat image = imread( "faceScene.jpg", 1 );
-	detect_face(image, cascade, nestedCascade, scale);
 	
+	VideoCapture cap(0); // open the default camera
+	namedWindow("face", 1);
+	double scale = 1.5;
+	if(0)
+	{
+		image = imread( "faceScene.jpg", 1 );
+		detect_face(image, cascade, nestedCascade, scale);
+	}
+	else
+	{
+		for(;;)
+		{
+			cap >> image;
+			detect_face(image, cascade, nestedCascade, scale);
+			imshow("face", image);
+			if(cv::waitKey(30) >= 0) break;
+		}
+	}
 	return 0;
 }
 
@@ -43,7 +58,7 @@ void detect_face( Mat& img,
     resize( gray, smallImg, smallImg.size(), 0, 0, INTER_LINEAR );
     equalizeHist( smallImg, smallImg );
     
-    cout<<"Detect and draw face(s)"<<endl;
+    //cout<<"Detect and draw face(s)"<<endl;
     t = (double)cvGetTickCount();
     cascade.detectMultiScale( smallImg, faces,
                              1.1, 2, 0
@@ -53,7 +68,7 @@ void detect_face( Mat& img,
                              ,
                              Size(30, 30) );
     t = (double)cvGetTickCount() - t;
-    printf( "detection time = %g ms\n", t/((double)cvGetTickFrequency()*1000.) );
+    //printf( "detection time = %g ms\n", t/((double)cvGetTickFrequency()*1000.) );
     
     for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++, i++ )
     {
@@ -74,7 +89,7 @@ void detect_face( Mat& img,
         rect = *r;
         rect.x = cvRound((r->x)*scale);
         rect.y = cvRound((r->y)*scale);
-        rectangle( img, rect, CV_RGB(255,255,255), 3, 8, 0);
+        rectangle( img, rect, CV_RGB(0,0,0), 3, 8, 0);
         
         nestedCascade.detectMultiScale( smallImgROI, nestedObjects,
                                        1.1, 2, 0

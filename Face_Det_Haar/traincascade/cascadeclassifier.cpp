@@ -255,6 +255,7 @@ bool CvCascadeClassifier::train( const String _cascadeDirName,
         return false;
     }
 
+    cout << "Save to " << dirName + CC_CASCADE_FILENAME <<endl;
     save( dirName + CC_CASCADE_FILENAME, baseFormatSave );
 
     return true;
@@ -278,13 +279,20 @@ bool CvCascadeClassifier::updateTrainingSet( double& acceptanceRatio)
     imgReader.restart();
     int posCount = fillPassedSamples( 0, numPos, true, posConsumed );
     if( !posCount )
+    {
+    	cout << "pos count error" <<endl;
         return false;
+    }
     cout << "POS count : consumed   " << posCount << " : " << (int)posConsumed << endl;
 
     int proNumNeg = cvRound( ( ((double)numNeg) * ((double)posCount) ) / numPos ); // apply only a fraction of negative samples. double is required since overflow is possible
+    cout<< "posCount: " << posCount << " proNumNeg: " << proNumNeg <<endl;
     int negCount = fillPassedSamples( posCount, proNumNeg, false, negConsumed );
     if ( !negCount )
+    {
+    	cout << "neg count error" <<endl;
         return false;
+    }
 
     curNumSamples = posCount + negCount;
     acceptanceRatio = negConsumed == 0 ? 0 : ( (double)negCount/(double)(int64)negConsumed );
@@ -303,7 +311,11 @@ int CvCascadeClassifier::fillPassedSamples( int first, int count, bool isPositiv
             bool isGetImg = isPositive ? imgReader.getPos( img ) :
                                            imgReader.getNeg( img );
             if( !isGetImg )
+            {
+                cout << "error: " << isPositive << " ";
+                cout << img.rows <<"*"<< img.cols <<endl;
                 return getcount;
+            }
             consumed++;
 
             featureEvaluator->setImage( img, isPositive ? 1 : 0, i );
@@ -457,6 +469,7 @@ void CvCascadeClassifier::save( const String filename, bool baseFormat )
                     ((CvHaarEvaluator*)((CvFeatureEvaluator*)featureEvaluator))->writeFeature( fs, tempNode->split->var_idx );
                     fs << "}";
 
+                    // tree threshold
                     fs << ICV_HAAR_THRESHOLD_NAME << tempNode->split->ord.c;
 
                     if( tempNode->left->left || tempNode->left->right )
