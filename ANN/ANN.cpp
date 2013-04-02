@@ -1,5 +1,6 @@
 #include <cv.h>
 #include <ml.h>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 
@@ -110,7 +111,6 @@ void Predict(float data1, float data2)
 
 int main()
 {
-	int wait;
 	srand(time(NULL));
 	
 	// Train the neural network  with the samples
