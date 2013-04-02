@@ -1,5 +1,7 @@
 #include <cv.h>
 #include <ml.h>
+#include <cstdlib>
+#include <ctime>
 
 // The neural network
 CvANN_MLP machineBrain;
@@ -8,30 +10,21 @@ CvANN_MLP machineBrain;
 void trainMachine()
 {
 	int i;
-	//The number of training samples. 
-	int train_sample_count;
+	int train_sample_count; //The number of training samples.
 
 	//The training data matrix. 
 	//Note that we are limiting the number of training data samples to 1000 here.
 	//The data sample consists of two inputs and an output. That's why 3.
 	float td[1000][3];
 
-	//Read the training file
-	/* A sample file contents(say we are training the network for generating
-	   the mean given two numbers) would be:
-	5
-	12 16 14
-	10 5  7.5
-	8  10 9
-	5  4  4.5
-	12 6  9
-	*/
-	FILE *fin;
-	fin = fopen("train.txt", "r");
-
-	//Get the number of samples.
-	fscanf(fin, "%d", &train_sample_count);
-	printf("Found training file with %d samples...\n", train_sample_count);
+	//Generate random train data, the output is the average of two input data
+	train_sample_count = 1000;
+	for(i = 0; i < train_sample_count; i++)
+	{
+		td[i][0] = (float)(rand()%100);
+		td[i][1] = (float)(rand()%100);
+		td[i][2] = (td[i][0] + td[i][1]) / 2.0;
+	}
 
 	//Create the matrices
 	//Input data samples. Matrix of order (train_sample_count x 2)
@@ -64,12 +57,6 @@ void trainMachine()
 	cvSet1D(&neuralLayers1, 1, cvScalar(3));
 	cvSet1D(&neuralLayers1, 2, cvScalar(3));
 	cvSet1D(&neuralLayers1, 3, cvScalar(1));
-
-	//Read and populate the samples.
-	for (i=0;i<train_sample_count;i++)
-		fscanf(fin,"%f %f %f",&td[i][0],&td[i][1],&td[i][2]);
-
-	fclose(fin);
 
 	//Assemble the ML training data.
 	for (i=0; i<train_sample_count; i++)
@@ -118,20 +105,21 @@ void Predict(float data1, float data2)
 
 	machineBrain.predict(&sample, &predout);
 
-	printf("%f \n", predout.data.fl[0]);
+	printf("(%f+%f)/2=%f -> %f \n", data1, data2, (data1+data2)/2, predout.data.fl[0]);
 }
 
 int main()
 {
 	int wait;
-
+	srand(time(NULL));
+	
 	// Train the neural network  with the samples
 	trainMachine();
 
 	// Now try predicting some values with the trained network
-	Predict(15.0, 20.0);
-	Predict(1.0, 5.0);
-	Predict(12.0, 3.0);
+	Predict((float)(rand()%100), (float)(rand()%100));
+	Predict((float)(rand()%100), (float)(rand()%100));
+	Predict((float)(rand()%100), (float)(rand()%100));
 
 	return 0;
 }
