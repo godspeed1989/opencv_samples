@@ -11,3 +11,6 @@ $(FILE).o: $(FILE).cpp
 $(FILE): $(FILE).o
 	$(CC) $+ $(LIBS) -o $@
 
+clean:
+	rm -f $(FILE) $(FILE).o
+

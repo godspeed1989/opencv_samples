@@ -8,10 +8,18 @@ using namespace cv;
 
 int main( int argc, char** argv )
 {
-	Mat img_object = imread( "object.png", CV_LOAD_IMAGE_GRAYSCALE );
-	Mat img_scene = imread( "scene.png", CV_LOAD_IMAGE_GRAYSCALE );
+	if(argc < 3)
+	{
+		printf("Usage: ./%s obj scene [dist]\n", argv[0]);
+		return 1;
+	}
+	float dist = 0.3;
+	if(argc > 3)
+		sscanf(argv[3], "%f", &dist);
+	Mat img_object = imread( argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+	Mat img_scene = imread( argv[2], CV_LOAD_IMAGE_GRAYSCALE );
 
-	int minHessian = 400;
+	int minHessian = 300;
 	//-- <1> Detect the keypoints using SURF Detector
 	SurfFeatureDetector detector(minHessian);
 	std::vector<KeyPoint> keypoints_object, keypoints_scene;
@@ -41,17 +49,11 @@ int main( int argc, char** argv )
 	printf("-- Max dist : %f \n", max_dist );
 	printf("-- Min dist : %f \n", min_dist );
 
-	//-- <4> Draw only "good" matches (i.e. whose distance is less than 3*min_dist )
+	//-- <4> Find only "good" matches (i.e. whose distance is less than 3*min_dist )
 	std::vector< DMatch > good_matches;
 	for( int i = 0; i < descriptors_object.rows; i++ )
-	if( matches[i].distance < ((max_dist-min_dist)*0.65) )
-		good_matches.push_back( matches[i]);
-
-	Mat img_matches;
-	drawMatches(img_object, keypoints_object,
-				img_scene, keypoints_scene,
-				good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
-				vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+		if( matches[i].distance < ((max_dist-min_dist)*dist) )
+			good_matches.push_back( matches[i]);
 
 	//-- <5> Localize the object from img_1 in img_2
 	std::vector<Point2f> obj;
@@ -61,6 +63,8 @@ int main( int argc, char** argv )
 		obj.push_back( keypoints_object[ good_matches[i].queryIdx ].pt );
 		scene.push_back( keypoints_scene[ good_matches[i].trainIdx ].pt );
 	}
+	printf("obj keypoints : %zu\n", obj.size());
+	printf("scene keypoints : %zu\n", scene.size());
 	Mat Homography = findHomography( obj, scene, CV_RANSAC );
 
 	//-- Get the corners from the image_1 ( the object to be "detected" )
@@ -71,6 +75,13 @@ int main( int argc, char** argv )
 	obj_corners[3] = cvPoint( 0, img_object.rows );
 	std::vector<Point2f> scene_corners(4);
 	perspectiveTransform( obj_corners, scene_corners, Homography);
+
+	// draw mathes
+	Mat img_matches;
+	drawMatches(img_object, keypoints_object,
+				img_scene, keypoints_scene,
+				good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+				vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
 
 	//-- Draw lines between the corners (the mapped object in the scene - image_2 )
 	Point2f offset( (float)img_object.cols, 0);
