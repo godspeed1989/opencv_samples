@@ -63,8 +63,8 @@ int main( int argc, char** argv )
 		obj.push_back( keypoints_object[ good_matches[i].queryIdx ].pt );
 		scene.push_back( keypoints_scene[ good_matches[i].trainIdx ].pt );
 	}
-	printf("obj keypoints : %zu\n", obj.size());
-	printf("scene keypoints : %zu\n", scene.size());
+	printf("obj keypoints : %zu / %d\n", obj.size(), descriptors_object.rows);
+	printf("scene keypoints : %zu / %d\n", scene.size(), descriptors_scene.rows);
 	Mat Homography = findHomography( obj, scene, CV_RANSAC );
 
 	//-- Get the corners from the image_1 ( the object to be "detected" )
@@ -92,6 +92,7 @@ int main( int argc, char** argv )
 
 	//-- Show detected matches
 	imshow( "Good Matches & Object detection", img_matches );
+	imwrite( "result.png", img_matches);
 	waitKey(0);
 	return 0;
 }

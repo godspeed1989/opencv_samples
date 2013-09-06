@@ -24,7 +24,7 @@ void trainMachine()
 	{
 		td[i][0] = (float)(rand()%100);
 		td[i][1] = (float)(rand()%100);
-		td[i][2] = (td[i][0] + td[i][1]) / 2.0;
+		td[i][2] = (float)((td[i][0] + td[i][1]) / 2.0);
 	}
 
 	//Create the matrices
@@ -111,7 +111,7 @@ void Predict(float data1, float data2)
 
 int main()
 {
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	
 	// Train the neural network  with the samples
 	trainMachine();
