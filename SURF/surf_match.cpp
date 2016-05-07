@@ -1,10 +1,14 @@
 #include <stdio.h>
-#include <cv.h>
-#include <ml.h>
-#include <highgui.h>
-#include "opencv2/nonfree/features2d.hpp"
+#include <vector>
+#include <opencv2/xfeatures2d.hpp>
+#include <opencv2/xfeatures2d/nonfree.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/video/tracking.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 using namespace cv;
+using namespace xfeatures2d;
 
 int main( int argc, char** argv )
 {
@@ -21,16 +25,16 @@ int main( int argc, char** argv )
 
 	int minHessian = 300;
 	//-- <1> Detect the keypoints using SURF Detector
-	SurfFeatureDetector detector(minHessian);
+	Ptr<FeatureDetector> detector = SURF::create();
 	std::vector<KeyPoint> keypoints_object, keypoints_scene;
-	detector.detect( img_object, keypoints_object );
-	detector.detect( img_scene, keypoints_scene );
+	detector->detect( img_object, keypoints_object );
+	detector->detect( img_scene, keypoints_scene );
 
 	//-- <2> Calculate descriptors (feature vectors)
-	SurfDescriptorExtractor extractor;
+	Ptr<DescriptorExtractor> extractor = SURF::create();
 	Mat descriptors_object, descriptors_scene;
-	extractor.compute( img_object, keypoints_object, descriptors_object );
-	extractor.compute( img_scene, keypoints_scene, descriptors_scene );
+	extractor->compute( img_object, keypoints_object, descriptors_object );
+	extractor->compute( img_scene, keypoints_scene, descriptors_scene );
 
 	//-- <3> Matching descriptor vectors using FLANN matcher
 	FlannBasedMatcher matcher;
@@ -81,7 +85,7 @@ int main( int argc, char** argv )
 	drawMatches(img_object, keypoints_object,
 				img_scene, keypoints_scene,
 				good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
-				vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+				std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
 
 	//-- Draw lines between the corners (the mapped object in the scene - image_2 )
 	Point2f offset( (float)img_object.cols, 0);

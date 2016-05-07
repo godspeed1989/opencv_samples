@@ -1,6 +1,6 @@
 CC=g++
 LIBS=`pkg-config opencv --libs`
-CPPFLAGS=`pkg-config opencv --cflags`
+CPPFLAGS=`pkg-config opencv --cflags` -g
 
 FILE=surf_match
 
